@@ -14,7 +14,6 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    //Prints opening message and stores nex line of input from user in fileUser
     public static void main(String[] args) throws IOException {
         System.out.println("This program will take in a CSV and print names in the order listed to the Names.txt file and dates to the DatedData.txt. It will then create a PresentAbsent.txt that will print to it what days did and didn’t have a value.");
         Scanner consoleScanner = new Scanner(System.in);
@@ -22,79 +21,87 @@ public class Main {
         String fileUser = consoleScanner.nextLine();
         validateInput(fileUser, consoleScanner);
     }
-        public static boolean readCSV(File file) throws IOException {
-        FileWriter dates = new FileWriter("DatedData.txt");
-        int numberOfColumns = 0;
+
+    public static boolean readCSV(File file) throws IOException 
+    {
         int lineNumber = 0;
-        int count = 0;
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        int lineCount = 0;
-        while(reader.readLine() != null) lineCount++;
-        reader.close();
-        System.out.println(lineCount);
-        
-        //checks if it can find file, if not return false
-        if (!file.exists() || !file.isFile()) {
+
+        if (!file.exists() || !file.isFile()) 
+        {
             System.out.println("Error: File not found or incorrect directory.");
             return false;
         }
-        //checks if first line of .CSV is , if not return false
-        try (Scanner scanner = new Scanner(file)) {
-            if (scanner.hasNextLine()) {
-                String firstLine = scanner.nextLine();
-                if (!firstLine.startsWith(",")) {
-                    System.out.println("Error: First character of the first line must be a comma.");
-                    return false;
+        
+        //BufferedWriters for Dated.Data and PresentAbsent
+        BufferedWriter dateWriter = new BufferedWriter(new FileWriter("DatedData.txt"));
+        BufferedWriter presentAbsentWriter = new BufferedWriter(new FileWriter("PresentAbsent.txt"));
+
+        //Reads file line by line
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) 
+        {
+            String line;
+            line = reader.readLine();
+            lineNumber++;
+
+        //Only first line is read for names
+            if (lineNumber == 1) 
+            {
+                FileWriter names = new FileWriter("Names.txt");
+                String[] nameList = line.substring(1).split(",");
+                BufferedWriter nameWriter = new BufferedWriter(new FileWriter("Names.txt"));
+                for (String name : nameList) 
+                {
+                    nameWriter.write(name);
+                    nameWriter.newLine();
+                }
+                nameWriter.close();
+                names.close();
+            }
+
+            //Read the rest of the lines until the line is empty or null 
+            while ((line = reader.readLine()) != null) 
+            {
+                if (line.trim().isEmpty()) 
+                {
+                    break;
                 }
                 
-                numberOfColumns = firstLine.split(",").length;
-            }
-            
-            while (lineNumber < lineCount) {
-                // This if statement is built to read the first line of the CSV and print unique names to the Names.txt file
-                if (lineNumber == 1) {
-                    FileWriter names = new FileWriter("Names.txt");
-                    BufferedReader lineReader = new BufferedReader(new FileReader(file));
-                    String columnNames = lineReader.readLine();
-                    String[] nameList = columnNames.substring(1).split(",");
-                    BufferedWriter nameWriter = new BufferedWriter(new FileWriter("Names.txt"));
-                    for (String name : nameList) {
-                        // TODO need to make sure non unique names are overwritten and not duplicated
-                        nameWriter.write(name);
-                        nameWriter.newLine();
+                //splits line by commas
+                String[] dateList = line.split(",");
+                if (dateList.length > 0) 
+                {
+                    //writes onyl date in DatedData 
+                    dateWriter.write(dateList[0]);
+                    dateWriter.newLine();
+                    
+                    //List that stores converted values to 1's and 0's
+                    List<String> presentAbsentList = new ArrayList<>();
+                    
+                    for (int i = 1; i < dateList.length; i++) 
+                    {
+                        String value = dateList[i].trim();
+                        if (!value.isEmpty()) 
+                        {
+                            double num = Double.parseDouble(value);
+                            presentAbsentList.add(num != 0 ? "1" : "0");
+                        }
                     }
-                    lineReader.close();
-                    nameWriter.close();
-                    names.close();  
-            } else if (lineNumber > 1){
-                
-                BufferedReader dateReader = new BufferedReader(new FileReader(file));
-                String listedDates = dateReader.readLine();
-                while (count < lineNumber) {
-                    listedDates = dateReader.readLine();
-                    count++;
+                    //joins values with commas and write to presentabsent
+                    presentAbsentWriter.write(String.join(", ", presentAbsentList));
+                    presentAbsentWriter.newLine();
                 }
-                String[] dateList = listedDates.split(",");
-                
-                BufferedWriter dateWriter = new BufferedWriter(new FileWriter("DatedData.txt"));
-                // TODO Only the last date is being printed because it the date is getting overwritten each time
-                dateWriter.write(dateList[0]);
-                dateWriter.newLine();
-                dateReader.close();
-                dateWriter.close();
-                dates.close();
-            } 
-                count = 0;
-                lineNumber++;
             }
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) 
+        {
             System.out.println("Error: Unable to read the file.");
             return false;
         }
-        
+
+        dateWriter.close();
+        presentAbsentWriter.close();
         return true;
     }
-    //Validates user input based on certain parameters described below
+    //
     public static void validateInput(String fileUser, Scanner consoleScanner) throws IOException{
         if(fileUser.length() < 4){
             System.out.println("The file must be at least 5 characters including \".CSV\" as a suffix.");
@@ -113,8 +120,4 @@ public class Main {
             readCSV(file);
         }
     }
-    
-    
 }
-
-
