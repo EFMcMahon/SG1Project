@@ -14,7 +14,6 @@ used: https://www.w3schools.com/ figure out do file inputs with java
 How To: The opening comment will request a .csv file that requires a specific format. Type out the file name exactly making sure to include ".csv". If the inputed file matches the format the program will take it and fill out the DatedData.txt, Names.txt, and PresentAbsent.txt files based on the data recieved
 from the inputed file.
 */
-import java.util.Scanner;
 import java.io.*;
 import java.util.*;
 
@@ -83,9 +82,14 @@ public class Main {
                 String[] dateList = line.split(",");
                 if (dateList.length > 0) 
                 {
-                    //writes only date in DatedData 
-                    dateWriter.write(dateList[0]);
-                    dateWriter.newLine();
+                    //writes only date in DatedData
+                    if (dateList[0].matches("^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/\\d{4}$")) {
+                        dateWriter.write(dateList[0]);
+                        dateWriter.newLine();
+                    } else {
+                        System.out.println("The dates must be in MM/DD/YYYY format.");
+                        return false;
+                    }
                     
                     //List that stores converted values to 1's and 0's
                     List<String> presentAbsentList = new ArrayList<>();
